@@ -58,10 +58,12 @@ import org.postgresql.jdbc.PgArray;
  */
 
 public abstract class BasedeDatos implements Serializable{
-    protected Connection con;
     
-    protected String 
-            NOMBRE, URI, 
+    protected Connection 
+            con;
+    
+    protected String
+            nombre, URI, 
             CONTROLADOR, CLAVE,
             USUARIO;     
     
@@ -70,16 +72,16 @@ public abstract class BasedeDatos implements Serializable{
             POSGREST_CONTROLADOR = "org.postgresql.Driver",
             POSGREST_URI = "jdbc:postgresql:";
     
-    public BasedeDatos(String bd) {
-        NOMBRE = bd;
-        //System.out.println(conectar(bd) ? "Base de datos conectada correctamente" : "Base de datos no conectada");
+    public BasedeDatos(String nombre) {
+        this.nombre = nombre;
     }
-
-    public String getNOMBRE() {
-        return NOMBRE;
-    }
-
     
+    public String getNOMBRE() {
+        return nombre;
+    }
+
+    public abstract Tabla[] getTablas();
+
     /**
      *
      * @param controlador
@@ -134,7 +136,7 @@ public abstract class BasedeDatos implements Serializable{
      * @return Devuelve si fué finalizada correctamente
      */    
     public boolean Consulta(Consulta consult){
-        conectar(NOMBRE);
+        conectar(nombre);
         
         Campo[] parametros = consult.getParametros();
         int estado = 0;
@@ -175,7 +177,7 @@ public abstract class BasedeDatos implements Serializable{
  */
     
     public LinkedList<Campo[]> recibirConsultaIndexadas(Consulta consult) {
-        conectar(NOMBRE);
+        conectar(nombre);
 
         //Construccion de la tabla de salida
         LinkedList<Campo[]> res = new LinkedList<>();
@@ -198,12 +200,14 @@ public abstract class BasedeDatos implements Serializable{
                         consulta.setDate(i+1, Date.valueOf(parametros[i].getValor().toString()));
                     else if (parametros[i].getValor() instanceof Integer)
                         consulta.setInt(i+1, (int) parametros[i].getValor());
+                    else if (parametros[i].getValor() instanceof  Long)
+                        consulta.setLong(i+1, (Long) parametros[i].getValor());
                     else if (parametros[i].getValor() instanceof String)
                         consulta.setString(i+1, (String) parametros[i].getValor());
                     else if (parametros[i].getValor() instanceof byte[])
                         consulta.setBlob(i+1, (Blob) parametros[i].getValor());
                     else
-                        consulta.setObject(i+1, parametros[i]);
+                        consulta.setObject(i, parametros[i].getValor());
                 }
             
             //Ejecuta la sentencia SQL y devuelve un ResulSet
@@ -236,11 +240,12 @@ public abstract class BasedeDatos implements Serializable{
     protected abstract boolean conectar(String bd);
     
     public boolean  conectar(){
-        return conectar(NOMBRE);
+        return conectar(nombre);
     }
-    protected boolean crearBasedeDatos() {
-        System.out.println("\t* Creando base de datos: " + NOMBRE );
-        String temp = NOMBRE;
+    
+    public boolean crearBasedeDatos() {
+        System.out.println("\t* Creando base de datos: " + nombre );
+        String temp = nombre;
         
         System.out.print("\t* ");
         conectar("");
@@ -255,7 +260,8 @@ public abstract class BasedeDatos implements Serializable{
         return res;
     }
     
-    protected boolean probarBasedeDatos(Tabla... tablas){
+    protected boolean probarBasedeDatos(){
+        Tabla[] tablas = getTablas();
         System.out.println("*** inicio de la prueba de coexion ***");
         System.out.println("\t* Conectando con base de datos");
         boolean operacion = true;
@@ -294,9 +300,7 @@ public abstract class BasedeDatos implements Serializable{
     }
     
     protected boolean borrarBasedeDatos() {
-        Consulta consult = new Consulta(NOMBRE, Consulta.BD_ELIMINAR);
+        Consulta consult = new Consulta(nombre, Consulta.BD_ELIMINAR);
         return Consulta(consult);
     }
-    
-    public abstract boolean probarBasedeDatos();    
 }

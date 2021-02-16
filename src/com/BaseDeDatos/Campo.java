@@ -15,16 +15,17 @@ public class Campo {
             TIPO_REAL                = " float8 ",
             TIPO_BOOLEANO            = " bool ",
             TIPO_SERIAL              = " BIGSERIAL ",
-            TIPO_CARACTER            = " char ";
+            TIPO_CARACTER            = " char ",
+            PROPIEDAD_LLAVE_PRIMARIA = " PRIMARY KEY ";
     
     private final String 
             NOMBRE,
             TIPO,
             PROPIEDADES;
     
-    private static final String
-            PROPIEDAD_LLAVE_PRIMARIA = " PRIMARY KEY ";
-
+    private boolean
+            parametro;
+    
     private Object 
             valor;   
     
@@ -38,6 +39,7 @@ public class Campo {
         this.NOMBRE = nombre;
         this.TIPO = "";
         this.PROPIEDADES = "";
+        this.parametro = true;
     }
 
     public Campo(String nombre, Object valor) {
@@ -45,6 +47,7 @@ public class Campo {
         this.valor = valor;
         this.TIPO = null;
         this.PROPIEDADES = "";
+        this.parametro = false;
     }
     
     public  Campo(String nombre, String tipo, boolean llaveprimaria){
@@ -52,6 +55,7 @@ public class Campo {
         this.llavePrimaria = llaveprimaria;
         this.TIPO = tipo;
         this.PROPIEDADES = "";
+        this.parametro = false;
     }
     
     public  Campo(String nombre, String tipo, int longitud){
@@ -59,12 +63,22 @@ public class Campo {
         this.TIPO = tipo;
         this.PROPIEDADES = "";
         this.longitud = longitud;
+        this.parametro = false;
     }
     
     public  Campo(String nombre, String tipo, String propiedades){
         this.NOMBRE = nombre;
         this.TIPO = tipo;
         this.PROPIEDADES = propiedades;
+        this.parametro = false;
+    }
+
+    public boolean isParametro() {
+        return parametro;
+    }
+
+    public void setParametro(boolean parametro) {
+        this.parametro = parametro;
     }
 
     public Object getValor() {

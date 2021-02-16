@@ -26,62 +26,42 @@ public class Consulta {
             accion;
     
     private final String
-            nombre;
+            tabla;
     
     private final Campo[]
             campos;
     
-    private Campo[]
-            condiciones;
-    
     public Consulta(String tabla,char accion, Campo... campos) {
-        this.nombre = tabla;
+        this.tabla = tabla;
         this.accion = accion;
         this.campos = campos;
     }
-
-    Consulta(String nombre, Campo[] campos, Campo... condiciones) {
-        this.nombre = nombre;
-        this.accion = ACTUALIZAR;
-        this.campos = campos;
-        this.condiciones = condiciones;
-    }
     
     private String getSelcionar(){
-        String res = "SELECT ";
-        for (int i = 0; i < campos.length; i++) {
-            if (i != 0)
-                res += " , ";
-            res += campos[i].getNombre();
-        }
-        
-        res += " FROM public." + nombre;        
-        try {
-           if (campos != null || campos.length != 0)
-               res += getParametrizacion();            
-        } catch (Exception e) {
-        }
-        
-        return res;
+        return "SELECT " + getCondiciones() + " FROM public." + tabla + getParametrizacion();            
     }
     
+    private String getCondiciones(){
+        String res = "";
+        if (campos != null)
+            for (int i = 0; i < campos.length; i++)
+                if (campos[i].isParametro()){
+                    if (i != 0)
+                        res += " , ";
+                    res += campos[i].getNombre();
+                }
+        return res;
+    }
     private String getParametrizacion(){
         String res = "";
-        if (this.condiciones != null){
-            res = " WHERE ";
+        if (campos != null || campos.length != 0){
             for (Campo obj : campos)
                 if (obj.isValor())
                     res += obj.getNombre() + " = ? AND ";
-        }else{
-            for (Campo campo : campos)
-                res += campo.getNombre() + "=?, ";
-            res = res.substring(0, res.length()- 2) + " WHERE ";
-            
-            for (Campo obj : condiciones)
-                if (obj.isValor())
-                    res += obj.getNombre() + " = ? AND ";
+            if (res.length() != 0)
+                res = " WHERE " + res.substring(0, res.length() - 5);                
         }
-        return res.substring(0, res.length() - 5);
+        return res;
     }
     
     public Campo[] getParametros(){
@@ -144,27 +124,27 @@ public class Consulta {
     }
 
     private String getCrearBD() {
-        String res = "CREATE DATABASE \"" + nombre + "\"";
+        String res = "CREATE DATABASE \"" + tabla + "\"";
         return res;
     }
 
     private String getEliminarBD() {
-        String res = "DROP DATABASE " + nombre;
+        String res = "DROP DATABASE " + tabla;
         return res;
     }
 
     private String getActualizar() {
-        String res = "UPDATE public." + nombre + " SET " + getParametrizacion();
+        String res = "UPDATE public." + tabla + " SET " + getParametrizacion();
         return res;
     }
 
     private String getEliminar() {
-        String res = "DELETE FROM public." + nombre + "\n" + getParametrizacion();
+        String res = "DELETE FROM public." + tabla + "\n" + getParametrizacion();
         return res;
     }
 
     private String getAgregar() {
-        String res = "INSERT INTO public." + nombre + "(\n" + getCampos() + ")\n" + " VALUES (";
+        String res = "INSERT INTO public." + tabla + "(\n" + getCampos() + ")\n" + " VALUES (";
         for (int i = 0; i < campos.length -1; i++) 
             res += " ? ,";        
         return res + " ? )";
@@ -188,7 +168,7 @@ public class Consulta {
             contenido += obj.getCampoToString() + " , \n";
         
         contenido += ID.getCampoToString();
-        String llavesPrimarias = ", \nCONSTRAINT " + nombre + "_pkey PRIMARY KEY ( " + ID.getNombre();
+        String llavesPrimarias = ", \nCONSTRAINT " + tabla + "_pkey PRIMARY KEY ( " + ID.getNombre();
         
         for (Campo campo : campos) 
             if (campo.isLlavePrimaria())
@@ -198,15 +178,15 @@ public class Consulta {
         contenido += llavesPrimarias;
         
         //generando consulta
-        res = "CREATE TABLE public." + nombre + "\n" + contenido +
+        res = "CREATE TABLE public." + tabla + "\n" + contenido +
             "\n)WITH (OIDS = FALSE) TABLESPACE pg_default;" +
-            "\nALTER TABLE public." + nombre + 
+            "\nALTER TABLE public." + tabla + 
             "\nOWNER to postgres;";
         return res;
     }
 
     private String getEliminarTabla() {
-        return "DROP TABLE public." + nombre;
+        return "DROP TABLE public." + tabla;
     }
 
     boolean respuesta(int estado) {

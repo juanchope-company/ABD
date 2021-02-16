@@ -54,9 +54,17 @@ public abstract class Tabla implements Serializable{
             return false;
         }
             
-        Campo[] campos = getCampos(obj);
+        Campo[] aux = new Campo[getCampos(obj).length + 1];
+        int i=0;
         
-        Consulta consult = new Consulta(NOMBRE_TABLA, campos, new Campo(ID.getNombre(),obj.getID()));
+        for (Campo campo : getCampos(obj)) {
+            campo.setParametro(true);
+            aux[i] = campo;
+            i++;
+        }
+        
+        aux[i] = new Campo(ID.getNombre(),obj.getID());
+        Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.ACTUALIZAR, aux);
         
         return BD.Consulta(consult);
     }
@@ -109,17 +117,21 @@ public abstract class Tabla implements Serializable{
 //            " FROM public." + NOMBRE_TABLA +
 //            " where " + columna + " = ? ";
 
+        campo.setParametro(false);        
         Consulta consult = new Consulta(
             NOMBRE_TABLA, 
             Consulta.SELECIONAR,
             new Campo[]{
-                campo,
-                new Campo("*")
+                new Campo("*"),
+                campo
             }
         );
+        
         LinkedList<Campo[]> aux = BD.recibirConsultaIndexadas(consult);
         if (aux != null)
-            res = parse(aux.getLast());
+            if (aux.size() != 0)
+                res = parse(aux.getLast());
+        
         return  res;
     }
     
