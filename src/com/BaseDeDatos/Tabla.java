@@ -231,8 +231,14 @@ public abstract class Tabla implements Serializable{
     
     abstract public ObjectoTabla parse(Campo[] obj);
     
-    protected LinkedList<ObjectoTabla> getItem(Campo... campos){        
-        return camposToObjectTabla(Consulta.getSeleccion(campos, BD));
+    protected LinkedList<ObjectoTabla> getItem(Campo... campos){   
+        Campo[] aux = new Campo[campos.length + 1];
+        int i = 0;
+        
+        for (;i < campos.length; i++)
+            aux[i] = campos[i];
+        aux[i] = new Campo("*");
+        return camposToObjectTabla(Consulta.getSeleccion(aux, BD, NOMBRE_TABLA));
     }
 
     protected Campo getCampo(String nombre){

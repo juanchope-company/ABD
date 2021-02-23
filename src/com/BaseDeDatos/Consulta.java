@@ -43,12 +43,14 @@ public class Consulta {
     
     private String getCondiciones(){
         String res = "";
+        int n = 0;
         if (campos != null)
             for (int i = 0; i < campos.length; i++)
                 if (campos[i].isParametro()){
-                    if (i != 0)
+                    if (n != 0)
                         res += " , ";
                     res += campos[i].getNombre();
+                    n++;
                 }
         return res;
     }
@@ -78,23 +80,8 @@ public class Consulta {
         return res;
     }
 
-    public static LinkedList<Campo[]> getSeleccion(Campo[] campos, BasedeDatos BD) {
-//        String Consulta = "Select ";
-//        LinkedList<Campo> campss = new LinkedList<>();
-//        
-//        for (int i = 0; i < camps.length ; i++) {
-//            if (i != 0)
-//                Consulta += " , ";
-//            Consulta += camps[i].getNombre();
-//            if (camps[i].getValor() != null)
-//                campss.add(camps[i]);
-//        }
-//        
-//        Campo[] campos = new Campo[campss.size()];
-//        for (int i = 0; i < campss.size(); i++)
-//            campos[i] = campss.get(i);
-        
-        Consulta consulta = new Consulta(BD.getNOMBRE(),Consulta.SELECIONAR, campos);        
+    public static LinkedList<Campo[]> getSeleccion(Campo[] campos, BasedeDatos BD, String nomb_tabla) {        
+        Consulta consulta = new Consulta(nomb_tabla,Consulta.SELECIONAR, campos);        
         return BD.recibirConsultaIndexadas(consulta);
     }
 
