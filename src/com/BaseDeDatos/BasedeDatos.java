@@ -150,7 +150,7 @@ public abstract class BasedeDatos implements Serializable{
                     if (parametros[i].getValor() instanceof byte[])
                         consulta.setBytes(i+1, (byte[]) parametros[i].getValor());
                     else
-                       consulta.setObject(i+1, parametros[i].getValor());
+                        consulta.setObject(i+1, parametros[i].getValor());
                 }
             
             //Ejecuta la Consulta SQL Devolviendo un numero de estado

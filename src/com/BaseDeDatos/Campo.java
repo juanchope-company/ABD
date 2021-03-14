@@ -5,13 +5,13 @@ package com.BaseDeDatos;
  * @author Juanchope
  * @version 1.0
  */
-public class Campo {
+public class Campo implements Cloneable{
     
     public static final String 
             TIPO_ENTEROLARGO         = " bigint ",
             TIPO_TEXTO               = " text ",
             TIPO_ARREGLODETEXTO      = " text[] ",
-            TIPO_OBJECTO             = " bytea ",
+            TIPO_OBJETO             = " bytea ",
             TIPO_REAL                = " float8 ",
             TIPO_BOOLEANO            = " bool ",
             TIPO_SERIAL              = " BIGSERIAL ",
@@ -123,6 +123,15 @@ public class Campo {
 
     boolean isValor() {
         return valor != null;
+    }        
+
+    @Override
+    protected Campo clone() {
+        try {
+            return (Campo) super.clone();
+        } catch (CloneNotSupportedException e) {
+            System.out.println("Error al clonar campo: " + e.getMessage());
+            return null;
+        }
     }
-        
 }

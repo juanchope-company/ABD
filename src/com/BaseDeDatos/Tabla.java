@@ -1,10 +1,12 @@
 package com.BaseDeDatos;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInput;
 import java.io.ObjectInputStream;
-import java.io.Serializable;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -14,10 +16,13 @@ import java.util.LinkedList;
  * @author Juanchope 
  * @version 1.0
  */
-public abstract class Tabla implements Serializable{
-    
-    protected static final Campo 
+public abstract class Tabla{
+    protected static final Campo
             ID = new Campo("id", Campo.TIPO_SERIAL, true);
+    
+    protected final Campo 
+            id = new Campo("id", Campo.TIPO_SERIAL, true),
+            TODOS_CAMPOS = new Campo("*");
     
     private final String 
             NOMBRE_TABLA;
@@ -36,19 +41,19 @@ public abstract class Tabla implements Serializable{
  * NOT NULL -> no nullo
  * @param BD Consulta a la base de datos
  * @param todosloscampos Campos de la tabla con sus tipos 
- * @param tabla nombre de la tabla
+ * @param nombre_tabla nombre de la tabla
  */
-    public Tabla(BasedeDatos BD, Campo[] todosloscampos,String tabla) {
+    public Tabla(BasedeDatos BD, Campo[] todosloscampos,String nombre_tabla) {
         this.BD = BD;
         CAMPOS = todosloscampos;
-        NOMBRE_TABLA = tabla;
+        NOMBRE_TABLA = nombre_tabla;
     }  
 
     public String getNOMBRE_TABLA() {
         return NOMBRE_TABLA;
     }
     
-    protected boolean ActualizarItem(ObjectoTabla obj){
+    protected boolean ActualizarItem(Objeto_Tabla obj){
         if (!obj.existe()){
             System.out.println("ID invalido porfavor intente nuevamente mas tarde.");
             return false;
@@ -63,16 +68,17 @@ public abstract class Tabla implements Serializable{
             i++;
         }
         
-        aux[i] = new Campo(ID.getNombre(),obj.getID());
+        aux[i] = ID.clone();
+        aux[i].setValor(obj.getID());
         Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.ACTUALIZAR, aux);
         
         return BD.Consulta(consult);
     }
     
-    protected boolean BorrarItem(ObjectoTabla obj) {
+    protected boolean BorrarItem(Objeto_Tabla obj) {
         boolean res;
-        ID.setValor(obj.getID());
-        Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.ELIMINAR, ID);
+        id.setValor(obj.getID());
+        Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.ELIMINAR, id);
         
         if ((res =BD.Consulta(consult)))
             System.out.println("item con el ID " + obj.getID() + " borrado de la tabla " + NOMBRE_TABLA);
@@ -81,7 +87,7 @@ public abstract class Tabla implements Serializable{
         return res;
     }
     
-    protected boolean AgregarItem(ObjectoTabla obj){
+    protected boolean AgregarItem(Objeto_Tabla obj){
         Campo[] campos = getCampos(obj);
         if (campos == null)
             return false;
@@ -89,8 +95,8 @@ public abstract class Tabla implements Serializable{
         return BD.Consulta(consult);
     }
     
-    public ObjectoTabla getItem(Long id) {
-        ObjectoTabla res = null;
+    public Objeto_Tabla getItem(Long id) {
+        Objeto_Tabla res = null;
 //        String consulta = "SELECT " + getCampos()  +
 //            " FROM public." + NOMBRE_TABLA +
 //            " where " + ID.getNombre() + " = ? ";
@@ -99,7 +105,7 @@ public abstract class Tabla implements Serializable{
             NOMBRE_TABLA,
             Consulta.SELECIONAR, 
             new Campo[]{
-                new Campo(ID.getNombre(), id),
+                new Campo(this.id.getNombre(), id),
                 new Campo("*")
             }
         );
@@ -111,18 +117,15 @@ public abstract class Tabla implements Serializable{
         return  res;
     }
     
-    protected ObjectoTabla getItem(Campo campo) {
-        ObjectoTabla res = null;
-//        String consulta = "SELECT " + getCampos() +
-//            " FROM public." + NOMBRE_TABLA +
-//            " where " + columna + " = ? ";
+    protected Objeto_Tabla getItem(Campo campo) {
+        Objeto_Tabla res = null;
 
         campo.setParametro(false);        
         Consulta consult = new Consulta(
             NOMBRE_TABLA, 
             Consulta.SELECIONAR,
             new Campo[]{
-                new Campo("*"),
+                TODOS_CAMPOS,
                 campo
             }
         );
@@ -137,21 +140,19 @@ public abstract class Tabla implements Serializable{
     
     
     
-    public LinkedList<ObjectoTabla> getItems() {
+    public LinkedList<Objeto_Tabla> getItems() {
         Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.SELECIONAR, new Campo("*"));
         
         //recuper los datos en la variable datos
         LinkedList<Campo[]> datos = BD.recibirConsultaIndexadas(consult);
         
-        if (datos == null)
-            return null;
-        
         //crea una variable res que sera el arreglo de usuarios a regresar
-        LinkedList<ObjectoTabla> res = new LinkedList<>();
+        LinkedList<Objeto_Tabla> res = new LinkedList<>();
         
-        datos.forEach((obj) -> { 
-            res.add(parse(obj));
-        });
+        if (datos != null)
+            datos.forEach((obj) -> { 
+                res.add(parse(obj));
+            });
         
         return res;
     }
@@ -190,6 +191,19 @@ public abstract class Tabla implements Serializable{
 //        
 //        return res.substring(sufijo.length());
 //    }
+     
+    protected static byte[] convertirObjectToByteArray(Object obj) {
+        byte[] res = null;
+        try {
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            ObjectOutput out = new ObjectOutputStream(bos);
+            out.writeObject(obj);
+            res = bos.toByteArray();
+        }   catch(IOException ex){
+            System.out.println(ex.getMessage());   
+        }
+        return res;
+    }
     
     protected static Object convertFromBytes(byte[] bytes){
         Object res = null;
@@ -202,11 +216,11 @@ public abstract class Tabla implements Serializable{
         return res;
     }
     
-    public boolean ValidarItem(ObjectoTabla obj){
+    public boolean ValidarItem(Objeto_Tabla obj){
         return getItem(obj.getID()) != null;
     }
     
-    protected LinkedList<ObjectoTabla> getItems(Campo[] items) {
+    protected LinkedList<Objeto_Tabla> getItems(Campo[] items) {
         if (items == null)
             return null;
         
@@ -219,7 +233,7 @@ public abstract class Tabla implements Serializable{
         return camposToObjectTabla(aux);
     }
     
-    public LinkedList<ObjectoTabla> buscatItem(Campo... campos){
+    public LinkedList<Objeto_Tabla> buscatItem(Campo... campos){
         Campo[] camposs = new Campo[campos.length + 1];
         System.arraycopy(campos, 0, camposs, 0, campos.length);
         camposs[campos.length] = new Campo("*");
@@ -229,9 +243,9 @@ public abstract class Tabla implements Serializable{
         return camposToObjectTabla(aux);
     }
     
-    abstract public ObjectoTabla parse(Campo[] obj);
+    abstract public Objeto_Tabla parse(Campo[] obj);
     
-    protected LinkedList<ObjectoTabla> getItem(Campo... campos){   
+    protected LinkedList<Objeto_Tabla> getItem(Campo... campos){   
         Campo[] aux = new Campo[campos.length + 1];
         int i = 0;
         
@@ -245,6 +259,10 @@ public abstract class Tabla implements Serializable{
         return getCampo(CAMPOS,nombre);
     }
     
+    protected Campo getCampo(Campo campo){
+        return getCampo(CAMPOS,campo.getNombre());
+    }
+    
     protected Campo getCampo(Campo[] campos, String nombre){
         for (Campo campo : campos) 
             if (campo.getNombre().equals(nombre))
@@ -256,11 +274,11 @@ public abstract class Tabla implements Serializable{
 //        return  getCampos(", ") + ", " + ID.getNombre();
 //    }
 
-    private LinkedList<ObjectoTabla> camposToObjectTabla(LinkedList<Campo[]> aux) {
+    private LinkedList<Objeto_Tabla> camposToObjectTabla(LinkedList<Campo[]> aux) {
         if (aux == null)
             return new LinkedList<>();
         
-        LinkedList<ObjectoTabla> res = new LinkedList<>();
+        LinkedList<Objeto_Tabla> res = new LinkedList<>();
         aux.forEach((obj) -> {
             res.add(parse(obj));
         });
@@ -295,5 +313,5 @@ public abstract class Tabla implements Serializable{
 //        return res;
 //    }
     
-    public abstract Campo[] getCampos(ObjectoTabla obj);
+    public abstract Campo[] getCampos(Objeto_Tabla obj);
 }

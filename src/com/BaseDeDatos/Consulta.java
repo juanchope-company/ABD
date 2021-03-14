@@ -1,6 +1,5 @@
 package com.BaseDeDatos;
 
-import static com.BaseDeDatos.Tabla.ID;
 import java.util.LinkedList;
 
 /**
@@ -55,13 +54,26 @@ public class Consulta {
         return res;
     }
     private String getParametrizacion(){
-        String res = "";
+        String res = "", aux = "";
         if (campos != null || campos.length != 0){
-            for (Campo obj : campos)
-                if (obj.isValor())
-                    res += obj.getNombre() + " = ? AND ";
-            if (res.length() != 0)
-                res = " WHERE " + res.substring(0, res.length() - 5);                
+            for (Campo obj : campos){
+                if (accion == ACTUALIZAR){
+                    if (obj.isValor() && obj.isLlavePrimaria())
+                        aux += obj.getNombre() + " = ? AND ";
+                    else if (obj.isValor())
+                        res += obj.getNombre() + " = ? ,   ";                      
+                }else
+                    if (obj.isValor())
+                        aux += obj.getNombre() + " = ? AND ";
+            }       
+            if (accion == ACTUALIZAR){
+                if (res.length() != 0)
+                    res = res.substring(0, res.length() - 5); 
+                if (aux.length() != 0)
+                    res += " WHERE " + aux.substring(0, aux.length() - 5);
+            }else
+                if (aux.length() != 0)
+                    res = " WHERE " + aux.substring(0, aux.length() - 5);
         }
         return res;
     }
@@ -148,9 +160,9 @@ public class Consulta {
 
     private String getCrearTabla() {
         //extrayendo campos
-        String 
-                res,
-                contenido = "(";
+        String res, contenido = "(";        
+        Campo ID = Tabla.ID;
+        
         for (Campo obj : campos)
             contenido += obj.getCampoToString() + " , \n";
         

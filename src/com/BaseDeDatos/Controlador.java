@@ -33,7 +33,7 @@ public abstract class Controlador {
     
     public boolean ListarObjectos() {
         if (tabla != null) {
-            LinkedList<ObjectoTabla> lu = tabla.getItems();
+            LinkedList<Objeto_Tabla> lu = tabla.getItems();
 
             for (int i = 0; i < lu.size(); i++)
                 System.out.println((i + 1) + ". " + lu.get(i).getMiniDescripcion());
@@ -100,7 +100,8 @@ public abstract class Controlador {
             System.out.println("2. Eliminar tabla");
             System.out.println("3. Ver tabla");
             System.out.println("4. Listar tabla");
-            System.out.println("5. Salir");
+            System.out.println("5. Probar Base de datos");
+            System.out.println("6. Salir");
 
             Scanner lectorInt = new Scanner(System.in);
             System.out.print("Elija una opción del [1 al 5]: ");
@@ -120,6 +121,9 @@ public abstract class Controlador {
                     ListarObjectos();
                     break;
                 case 5:
+                    probarBaseDeDatos();
+                    break;
+                case 6:
                     System.out.println("gracias por usar este programa");
                     return false;
                 default:
@@ -128,5 +132,16 @@ public abstract class Controlador {
             }
         }
         return true;
+    }
+
+    private void probarBaseDeDatos() {
+        if (bd != null){
+            if (bd.probarBasedeDatos())
+                System.out.println("Prueba exitosa");
+            else
+                System.out.println("Prueba fallida");
+        }
+        else
+            System.out.println("Error en base de datos");
     }
 }
