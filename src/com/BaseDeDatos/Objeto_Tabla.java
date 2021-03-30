@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.HashMap;
 
 /**
  *
@@ -15,7 +16,7 @@ import java.io.Serializable;
 public abstract class Objeto_Tabla implements Serializable{
     
     protected final Tabla TABLA;
-    protected Campo ID =  new Campo("id", Campo.TIPO_SERIAL, true);
+    protected Campo id =  Tabla.ID.clone();
     
     public final String
             MENSAGE = "mensage" ,
@@ -24,24 +25,20 @@ public abstract class Objeto_Tabla implements Serializable{
 
     public Objeto_Tabla(Tabla Consultas) {
         this.TABLA = Consultas;
-        this.ID.setValor((Long) 0L);
+        this.id.setValor((Long) 0L);
     }
     
     public Objeto_Tabla(Tabla Consultas, Long id) {
         this.TABLA = Consultas;
-        this.ID.setValor(id);
-    }
-    
-    public boolean esValido() {
-        return TABLA.ValidarItem(this);
+        this.id.setValor(id);
     }
     
     public Long getID() {
-        return (Long) ID.getValor();
+        return (Long) id.getValor();
     }
     
     public void setID(Long ID){
-        this.ID.setValor(ID);
+        this.id.setValor(ID);
     }
     
     public boolean AgregarItem(){
@@ -70,10 +67,18 @@ public abstract class Objeto_Tabla implements Serializable{
     }
     
     public boolean existe() {
-        return TABLA.getItem(ID) != null;
+        return TABLA.getItem(id) != null;
     }
     
-//    public abstract HashMap<String, Object> validar();
+    public HashMap<String, Object> Validar(){
+        return new HashMap<>();
+    }    
+        
+    public boolean esValido(){
+        return TABLA.ValidarItem(this);
+    }
     
-    public abstract String getMiniDescripcion();
+    public String getMiniDescripcion(){
+        return "falta por implementar la mini descripcion del objecto tabla en cuestion";
+    }
 }

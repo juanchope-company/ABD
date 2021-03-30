@@ -59,13 +59,16 @@ public class Consulta {
             for (Campo obj : campos){
                 if (accion == ACTUALIZAR){
                     if (obj.isValor() && obj.isLlavePrimaria())
-                        aux += obj.getNombre() + " = ? AND ";
+                        aux += obj.getbusqueda() + " AND ";
                     else if (obj.isValor())
-                        res += obj.getNombre() + " = ? ,   ";                      
+                        res += obj.getbusqueda() + " ,   ";                      
                 }else
-                    if (obj.isValor())
-                        aux += obj.getNombre() + " = ? AND ";
+                    if (obj.isValor() && obj.isbusqueda())
+                        aux += obj.getbusqueda()+ " OR ";
+                    else if (obj.isValor())
+                        aux += obj.getbusqueda()+ " AND ";
             }       
+            
             if (accion == ACTUALIZAR){
                 if (res.length() != 0)
                     res = res.substring(0, res.length() - 5); 
@@ -82,7 +85,7 @@ public class Consulta {
         LinkedList<Campo> aux = new LinkedList<>();
         
         for (Campo campo : campos)
-            if (campo.isValor())
+            if (campo.isValor() && !campo.isbusqueda())
                 aux.add(campo);
         
         Campo[] res = new Campo[aux.size()];
@@ -117,8 +120,7 @@ public class Consulta {
                 return getCrearBD();
             case BD_ELIMINAR:
                 return getEliminarBD();
-        }
-        
+        }        
         return res;
     }
 
@@ -161,20 +163,17 @@ public class Consulta {
     private String getCrearTabla() {
         //extrayendo campos
         String res, contenido = "(";        
-        Campo ID = Tabla.ID;
         
         for (Campo obj : campos)
             contenido += obj.getCampoToString() + " , \n";
         
-        contenido += ID.getCampoToString();
-        String llavesPrimarias = ", \nCONSTRAINT " + tabla + "_pkey PRIMARY KEY ( " + ID.getNombre();
+        String llavesPrimarias = "CONSTRAINT " + tabla + "_pkey PRIMARY KEY ( ";
         
         for (Campo campo : campos) 
             if (campo.isLlavePrimaria())
-                    llavesPrimarias += " , " + campo.getNombre();
+                    llavesPrimarias += campo.getNombre() + " , ";
         
-        llavesPrimarias += ")";
-        contenido += llavesPrimarias;
+        contenido += llavesPrimarias.substring(0, llavesPrimarias.length() - 3) + " ) ";
         
         //generando consulta
         res = "CREATE TABLE public." + tabla + "\n" + contenido +
@@ -188,13 +187,13 @@ public class Consulta {
         return "DROP TABLE public." + tabla;
     }
 
-    boolean respuesta(int estado) {
-        switch(accion){
-            case BD_CREAR:
-                return estado >= 0;
-            default:
-                return estado ==1;
-        }
-    }
+//    boolean respuesta(int estado) {
+//        switch(accion){
+//            case BD_CREAR:
+//                return estado >= 0;
+//            default:
+//                return estado ==1;
+//        }
+//    }
     
 }

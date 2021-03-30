@@ -7,6 +7,9 @@ package com.BaseDeDatos;
  */
 public class Campo implements Cloneable{
     
+    public static final Campo 
+            TODOS_CAMPOS = new Campo("*");
+
     public static final String 
             TIPO_ENTEROLARGO         = " bigint ",
             TIPO_TEXTO               = " text ",
@@ -24,7 +27,8 @@ public class Campo implements Cloneable{
             PROPIEDADES;
     
     private boolean
-            parametro;
+            parametro,
+            busqueda;
     
     private Object 
             valor;   
@@ -70,6 +74,15 @@ public class Campo implements Cloneable{
         this.NOMBRE = nombre;
         this.TIPO = tipo;
         this.PROPIEDADES = propiedades;
+        this.parametro = false;
+    }
+
+    public Campo(String nombre, boolean busqueda, String texto) {
+        this.NOMBRE = nombre;
+        this.busqueda = busqueda;
+        this.valor = texto;
+        this.TIPO = null;
+        this.PROPIEDADES = "";
         this.parametro = false;
     }
 
@@ -126,12 +139,26 @@ public class Campo implements Cloneable{
     }        
 
     @Override
-    protected Campo clone() {
+    public Campo clone(){
         try {
             return (Campo) super.clone();
         } catch (CloneNotSupportedException e) {
             System.out.println("Error al clonar campo: " + e.getMessage());
             return null;
         }
+    }
+
+    public String getbusqueda() {
+        if (busqueda){
+            String temp = NOMBRE + " LIKE '%" + valor + "%' ";
+            valor = null;
+            return temp;
+        }else
+            return NOMBRE + " = ? ";
+            
+    }
+
+    public boolean isbusqueda() {
+        return busqueda;
     }
 }

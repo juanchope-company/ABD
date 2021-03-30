@@ -1,12 +1,6 @@
 package com.BaseDeDatos;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -17,28 +11,20 @@ import java.util.LinkedList;
  * @version 1.0
  */
 public abstract class Tabla{
-    protected static final Campo
+    
+    protected static final Campo 
             ID = new Campo("id", Campo.TIPO_SERIAL, true);
     
-    protected final Campo 
-            id = new Campo("id", Campo.TIPO_SERIAL, true),
-            TODOS_CAMPOS = new Campo("*");
+    protected final Campo[]
+            CAMPOS;
     
-    private final String 
+    protected final String 
             NOMBRE_TABLA;
     
     public final BasedeDatos 
             BD;
     
-    protected final Campo[]
-            CAMPOS;
-    
 /**
- * bytea    -> byte[]
- * text     -> String
- * bigint   -> Long
- * text[]   -> String[]
- * NOT NULL -> no nullo
  * @param BD Consulta a la base de datos
  * @param todosloscampos Campos de la tabla con sus tipos 
  * @param nombre_tabla nombre de la tabla
@@ -75,10 +61,10 @@ public abstract class Tabla{
         return BD.Consulta(consult);
     }
     
-    protected boolean BorrarItem(Objeto_Tabla obj) {
+    protected boolean BorrarItem(Objeto_Tabla obj){
         boolean res;
-        id.setValor(obj.getID());
-        Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.ELIMINAR, id);
+        ID.setValor(obj.getID());
+        Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.ELIMINAR, ID);
         
         if ((res =BD.Consulta(consult)))
             System.out.println("item con el ID " + obj.getID() + " borrado de la tabla " + NOMBRE_TABLA);
@@ -95,19 +81,14 @@ public abstract class Tabla{
         return BD.Consulta(consult);
     }
     
-    public Objeto_Tabla getItem(Long id) {
+    public Objeto_Tabla getItem(Long id){
         Objeto_Tabla res = null;
-//        String consulta = "SELECT " + getCampos()  +
-//            " FROM public." + NOMBRE_TABLA +
-//            " where " + ID.getNombre() + " = ? ";
         
         Consulta consult = new Consulta(
             NOMBRE_TABLA,
             Consulta.SELECIONAR, 
-            new Campo[]{
-                new Campo(this.id.getNombre(), id),
-                new Campo("*")
-            }
+            new Campo("*"),
+            new Campo(ID.getNombre(), id)
         );
         
         LinkedList<Campo[]> aux = BD.recibirConsultaIndexadas(consult);
@@ -124,21 +105,17 @@ public abstract class Tabla{
         Consulta consult = new Consulta(
             NOMBRE_TABLA, 
             Consulta.SELECIONAR,
-            new Campo[]{
-                TODOS_CAMPOS,
-                campo
-            }
+            Campo.TODOS_CAMPOS,
+            campo
         );
         
         LinkedList<Campo[]> aux = BD.recibirConsultaIndexadas(consult);
         if (aux != null)
-            if (aux.size() != 0)
+            if (!aux.isEmpty())
                 res = parse(aux.getLast());
         
         return  res;
     }
-    
-    
     
     public LinkedList<Objeto_Tabla> getItems() {
         Consulta consult = new Consulta(NOMBRE_TABLA, Consulta.SELECIONAR, new Campo("*"));
@@ -156,7 +133,6 @@ public abstract class Tabla{
         
         return res;
     }
-    
     
     protected  boolean CrearTabla(){
         System.out.println("Generando tabla " + NOMBRE_TABLA);
@@ -181,18 +157,8 @@ public abstract class Tabla{
         System.out.println("\t* verificación de la tabla " + NOMBRE_TABLA + (res ? " exitosa" : " falló"));
         return res;
     }
-    
-
-//    private String getCampos(String sufijo) {
-//        String res = "";
-//        
-//        for (Campo obj : CAMPOS)
-//            res += sufijo + obj.getNombre();
-//        
-//        return res.substring(sufijo.length());
-//    }
      
-    protected static byte[] convertirObjectToByteArray(Object obj) {
+    public static byte[] convertirObjectToByteArray(Object obj) {
         byte[] res = null;
         try {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -263,16 +229,16 @@ public abstract class Tabla{
         return getCampo(CAMPOS,campo.getNombre());
     }
     
+    protected Campo getCampo(Campo[] campos, Campo campo){
+        return getCampo(campos, campo.getNombre());
+    }
+    
     protected Campo getCampo(Campo[] campos, String nombre){
         for (Campo campo : campos) 
             if (campo.getNombre().equals(nombre))
                 return campo;
         return null;
     }
-//    
-//    private String getCampos() {
-//        return  getCampos(", ") + ", " + ID.getNombre();
-//    }
 
     private LinkedList<Objeto_Tabla> camposToObjectTabla(LinkedList<Campo[]> aux) {
         if (aux == null)
@@ -285,7 +251,6 @@ public abstract class Tabla{
         
         return res;
     }
-    
     
     protected LinkedList<String> ConvertirArrayToArrayListString(String[] val) {
         LinkedList<String> res = new LinkedList<>();
@@ -303,15 +268,13 @@ public abstract class Tabla{
         
         return res;
     }    
-//    
-//    protected LinkedList<LocalDateTime> ConvertirArrayToArrayListLocalDateTime(String[] val) {
-//        LinkedList<LocalDateTime> res = new LinkedList<>();
-//        
-//        for (String obj : val)
-//            res.add(LocalDateTime.parse(obj));
-//        
-//        return res;
-//    }
+    
+    protected Objeto_Tabla getObjetoTabla(LinkedList<Campo[]> aux) {
+        if (aux != null)
+            if (aux.size() > 0)
+                return parse(aux.getLast());
+        return null;
+    }
     
     public abstract Campo[] getCampos(Objeto_Tabla obj);
 }

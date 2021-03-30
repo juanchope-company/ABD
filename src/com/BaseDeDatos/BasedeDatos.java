@@ -156,7 +156,7 @@ public abstract class BasedeDatos implements Serializable{
             //Ejecuta la Consulta SQL Devolviendo un numero de estado
             estado = consulta.executeUpdate();
             desconectar();
-            return consult.respuesta(estado);
+            return estado > 0;
         }catch(SQLException ex){            
             if (ex.hashCode() == 89387388)
                 System.out.println("Filas repetidas.");
@@ -260,7 +260,7 @@ public abstract class BasedeDatos implements Serializable{
         return res;
     }
     
-    protected boolean probarBasedeDatos(){
+    public boolean probarBasedeDatos(){
         Tabla[] tablas = getTablas();
         System.out.println("*** inicio de la prueba de coexion ***");
         System.out.println("\t* Conectando con base de datos");

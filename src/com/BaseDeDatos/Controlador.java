@@ -104,7 +104,7 @@ public abstract class Controlador {
             System.out.println("6. Salir");
 
             Scanner lectorInt = new Scanner(System.in);
-            System.out.print("Elija una opción del [1 al 5]: ");
+            System.out.print("Elija una opción del [1 al 6]: ");
             int eleccion = lectorInt.nextInt();
 
             switch (eleccion) {
@@ -131,6 +131,9 @@ public abstract class Controlador {
                     break;
             }
         }
+        Scanner lector = new Scanner(System.in);
+        System.out.println("Preciona enter para continuar.");
+        lector.nextLine();
         return true;
     }
 
