@@ -80,7 +80,7 @@ public abstract class BasedeDatos implements Serializable{
         return nombre;
     }
 
-    public abstract Tabla[] getTablas();
+    public abstract Objeto_Tabla[] getTablas();
 
     /**
      *
@@ -261,7 +261,7 @@ public abstract class BasedeDatos implements Serializable{
     }
     
     public boolean probarBasedeDatos(){
-        Tabla[] tablas = getTablas();
+        Objeto_Tabla[] tablas = getTablas();
         System.out.println("*** inicio de la prueba de coexion ***");
         System.out.println("\t* Conectando con base de datos");
         boolean operacion = true;

@@ -10,10 +10,10 @@ import java.util.Scanner;
  */
 public abstract class Controlador {
     
-    protected final Tabla tabla;
+    protected final Objeto_Tabla tabla;
     protected final BasedeDatos bd;
     
-    public Controlador(Tabla tabla){
+    public Controlador(Objeto_Tabla tabla){
         this.tabla = tabla;
         this.bd = null;
     }
@@ -43,7 +43,7 @@ public abstract class Controlador {
 
             return !lu.isEmpty();
         }else{
-            Tabla[] lt = bd.getTablas();
+            Objeto_Tabla[] lt = bd.getTablas();
             
             for (int i = 0; i < lt.length; i++)
                 System.out.println((i+1) + ". " + lt[i].getNOMBRE_TABLA());
